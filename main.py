@@ -14,9 +14,11 @@ headers = {
 
 
 def get_dota_items(items_count: int) -> list:
-    """Получает {items_count} первых предметов с торговой площадки
-    отсортированных по популярности. Возвращается список предметов
-    в виде [{'name', 'hash_name', 'sell_listings', 'sell_price', 'sell_price_text', 'app_icon'},...]
+    """ Функция поиска информации о предмете по api стима.
+    :param items_count: Получает {items_count} первых предметов с торговой площадки
+    отсортированных по популярности;
+    :return: список предметов
+    в виде [{'name', 'hash_name', 'sell_listings', 'sell_price', 'sell_price_text', 'app_icon', ...},...];
     """
     items = []
     if items_count < 0:
@@ -40,9 +42,31 @@ def get_dota_items(items_count: int) -> list:
     return items
 
 
+def get_item_id(hash_name: str) -> str:
+    """Функция парсинга id с полученной html страницы.
+    :param hash_name: имя предмета;
+    :return: id: str
+    """
+    url = "https://steamcommunity.com/market/listings/570/" + hash_name.replace(" ", "%20")
+    sess.params = ({})
+    response = sess.get(url)
+    html = response.text
+    item_id = str()
+    for i in range(html.find("Market_LoadOrderSpread") + 22, html.find("Market_LoadOrderSpread") + 122):
+        if html[i].isdigit():
+            item_id += html[i]
+        elif html[i] == ")":
+            break
+        if i == html.find("Market_LoadOrderSpread") + 99:
+            raise Exception("Wrong hash_name")
+    return item_id
+
+
 def main():
-    items = get_dota_items(50)
-    print(items[0])
+    items = get_dota_items(10)
+    for item in items:
+        id = get_item_id(item["hash_name"])
+        print(id)
 
 
 if __name__ == '__main__':
